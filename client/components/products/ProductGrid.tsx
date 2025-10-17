@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 export default function ProductGrid() {
   const [active, setActive] = useState<string>("All");
-  const { addItem } = useCart();
+  const { addToCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -43,7 +43,7 @@ export default function ProductGrid() {
     }
 
     // 1️⃣ Update local/global cart (UI updates instantly)
-    addItem({
+    addToCart({
       id: prod.id,
       name: prod.name,
       price: prod.price,
@@ -112,7 +112,7 @@ export default function ProductGrid() {
         {filtered
           .filter((p) => !!p.image)
           .map((p) => (
-            <ProductCard key={p.id} product={p} onAdd={handleAddToCart} />
+            <ProductCard key={p.id} product={p} />
           ))}
       </div>
     </section>

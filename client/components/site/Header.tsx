@@ -1,5 +1,6 @@
 import { Link, NavLink, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { ShoppingBag, Search, X } from "lucide-react";
+import { Link, NavLink, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useCart } from "@/store/cart";
 import { useEffect, useRef, useState } from "react";
 
@@ -11,7 +12,8 @@ const navItems = [
 ];
 
 export default function Header() {
-  const { count } = useCart();
+  const { items } = useCart();
+  const count = items.reduce((acc, item) => acc + item.qty, 0);
   const [open, setOpen] = useState(false);
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();

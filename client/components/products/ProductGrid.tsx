@@ -29,9 +29,7 @@ export default function ProductGrid() {
     ];
     const start = base.length - 4;
     return base.map((p, idx) =>
-      idx >= start
-        ? { ...p, image: fallbackLastFour[idx - start] }
-        : p
+      idx >= start ? { ...p, image: fallbackLastFour[idx - start] } : p,
     );
   }, [active, q]);
 

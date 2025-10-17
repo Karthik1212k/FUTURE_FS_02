@@ -1,5 +1,11 @@
 import { ShoppingBag, Search, X } from "lucide-react";
-import { Link, NavLink, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 import { useCart } from "@/store/cart";
 import { useEffect, useRef, useState } from "react";
 
@@ -53,7 +59,9 @@ export default function Header() {
             alt="Sneakers logo"
             className="h-8 w-8 rounded object-cover"
           />
-          <span className="heading-display text-xl font-semibold tracking-tight">Sneakers</span>
+          <span className="heading-display text-xl font-semibold tracking-tight">
+            Sneakers
+          </span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
@@ -73,7 +81,11 @@ export default function Header() {
 
         <div className="flex items-center gap-3">
           {!open ? (
-            <button onClick={() => setOpen(true)} aria-label="Search" className="p-2 rounded-full hover:bg-muted text-foreground/80">
+            <button
+              onClick={() => setOpen(true)}
+              aria-label="Search"
+              className="p-2 rounded-full hover:bg-muted text-foreground/80"
+            >
               <Search className="h-5 w-5" />
             </button>
           ) : (
@@ -86,15 +98,25 @@ export default function Header() {
                 placeholder="Search shoes..."
                 className="h-7 w-48 sm:w-64 focus:outline-none"
               />
-              <button aria-label="Close" onClick={clearSearch} className="rounded p-1 text-muted-foreground hover:bg-muted">
+              <button
+                aria-label="Close"
+                onClick={clearSearch}
+                className="rounded p-1 text-muted-foreground hover:bg-muted"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
           )}
-          <Link to="/cart" aria-label="Cart" className="relative p-2 rounded-full hover:bg-muted text-foreground/80">
+          <Link
+            to="/cart"
+            aria-label="Cart"
+            className="relative p-2 rounded-full hover:bg-muted text-foreground/80"
+          >
             <ShoppingBag className="h-5 w-5" />
             {count > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">{count}</span>
+              <span className="absolute -right-0.5 -top-0.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">
+                {count}
+              </span>
             )}
           </Link>
         </div>

@@ -1,4 +1,3 @@
-import { Link, NavLink, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { ShoppingBag, Search, X } from "lucide-react";
 import { Link, NavLink, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useCart } from "@/store/cart";

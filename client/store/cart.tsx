@@ -1,97 +1,73 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+// src/store/cart.tsx
+import { createContext, useContext, ReactNode, useState, useMemo } from "react";
+import { Product } from "@/components/products/ProductCard";
 
-export type CartItem = {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  brand: string;
-  qty: number;
-};
+export type CartItem = Product & { qty: number };
 
 type CartContextType = {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "qty">, qty?: number) => void;
+  addToCart: (product: Product) => void;
   increment: (id: string) => void;
   decrement: (id: string) => void;
   remove: (id: string) => void;
-  clear: () => void;
-  count: number;
   subtotal: number;
 };
 
-const CartContext = createContext<CartContextType | null>(null);
+const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const STORAGE_KEY = "app_cart_v1";
+export const CartProvider = ({ children }: { children: ReactNode }) => {
+  const [items, setItems] = useState<CartItem[]>([]);
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? (JSON.parse(raw) as CartItem[]) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    } catch {
-      // ignore
-    }
-  }, [items]);
-
-  const addItem: CartContextType["addItem"] = (item, qty = 1) => {
+  const addToCart = (product: Product) => {
     setItems((prev) => {
-      const idx = prev.findIndex((p) => p.id === item.id);
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = { ...next[idx], qty: next[idx].qty + qty };
-        return next;
+      const existing = prev.find((item) => item.id === product.id);
+      if (existing) {
+        // Increase quantity if already in cart
+        return prev.map((item) =>
+          item.id === product.id ? { ...item, qty: item.qty + 1 } : item
+        );
+      } else {
+        return [...prev, { ...product, qty: 1 }];
       }
-      return [...prev, { ...item, qty }];
     });
   };
 
   const increment = (id: string) => {
-    setItems((prev) => prev.map((p) => (p.id === id ? { ...p, qty: p.qty + 1 } : p)));
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, qty: item.qty + 1 } : item))
+    );
   };
 
   const decrement = (id: string) => {
     setItems((prev) =>
       prev
-        .map((p) => (p.id === id ? { ...p, qty: Math.max(0, p.qty - 1) } : p))
-        .filter((p) => p.qty > 0),
+        .map((item) => (item.id === id ? { ...item, qty: item.qty - 1 } : item))
+        .filter((item) => item.qty > 0) // Remove item if qty becomes 0
     );
   };
 
-  const remove = (id: string) => setItems((prev) => prev.filter((p) => p.id !== id));
-  const clear = () => setItems([]);
-
-  const { count, subtotal } = useMemo(() => {
-    const count = items.reduce((acc, it) => acc + it.qty, 0);
-    const subtotal = items.reduce((acc, it) => acc + it.qty * it.price, 0);
-    return { count, subtotal };
-  }, [items]);
-
-  const value: CartContextType = {
-    items,
-    addItem,
-    increment,
-    decrement,
-    remove,
-    clear,
-    count,
-    subtotal,
+  const remove = (id: string) => {
+    setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
-}
+  // ✅ Memoize subtotal to prevent unnecessary recalculations
+  const subtotal = useMemo(
+    () => items.reduce((acc, item) => acc + item.price * item.qty, 0),
+    [items]
+  );
 
-export function useCart() {
-  const ctx = useContext(CartContext);
-  if (!ctx) throw new Error("useCart must be used within CartProvider");
-  return ctx;
-}
+  return (
+    <CartContext.Provider
+      value={{ items, addToCart, increment, decrement, remove, subtotal }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
+};
+
+// ✅ Custom hook for consuming the cart
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) throw new Error("useCart must be used within a CartProvider");
+  return context;
+};

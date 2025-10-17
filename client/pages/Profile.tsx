@@ -1,7 +1,6 @@
 import { useState } from "react";
-// The useNavigate hook is no longer needed as we will stay on the same page.
 
-// Define the structure of the user object for clarity
+// Define the structure of the user object
 interface User {
   id: string;
   name: string;
@@ -19,24 +18,27 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [loggedInUser, setLoggedInUser] = useState<User | null>(null);
+  const [loggedInUser, setLoggedInUser] = useState<User | null>(
+    () => {
+      // Restore session from localStorage
+      const savedUser = localStorage.getItem("user");
+      return savedUser ? JSON.parse(savedUser) : null;
+    }
+  );
 
   const validateEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  // This function would typically live in an auth context or store.
-  // For simplicity, it's included here.
   const loginUser = (token: string, user: User) => {
-    // Store the token and user details in localStorage to persist the session
     localStorage.setItem("authToken", token);
     localStorage.setItem("user", JSON.stringify(user));
+    setLoggedInUser(user);
     console.log("User logged in and session saved.");
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // --- Form Validation ---
     if (!validateEmail(email)) {
       setError("Please enter a valid email address.");
       return;
@@ -50,12 +52,9 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // --- API Call to Backend ---
       const response = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
@@ -63,58 +62,56 @@ export default function Login() {
       setLoading(false);
 
       if (response.ok) {
-        // --- Successful Login ---
         const { token, user } = data as LoginResponse;
-
-        // Save the token and user data
         loginUser(token, user);
-        
-        // Set the logged-in user state to update the UI
-        setLoggedInUser(user);
-
-        // Notify user of success in the console
-        console.log(`Login Successful. Welcome back, ${user.name}!`);
-
-        // Reset form fields
         setEmail("");
         setPassword("");
-
       } else {
-        // --- Failed Login ---
         setError(data.msg || "Invalid credentials. Please try again.");
       }
     } catch (err) {
-      // --- Network or Server Error ---
       setLoading(false);
-      setError("Something went wrong. Please check your connection and try again.");
+      setError("Something went wrong. Please check your connection.");
       console.error("Login error:", err);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    setLoggedInUser(null);
   };
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-12">
       {loggedInUser ? (
-        // --- Show this view if the user IS logged in ---
+        // --- PROFILE VIEW ---
         <div className="text-center">
-          <h1 className="text-3xl font-semibold">Welcome Back!</h1>
-          <p className="mt-4 text-lg text-muted-foreground">
-            You are logged in as:
-          </p>
-          <p className="mt-2 text-xl font-medium text-primary">
-            {loggedInUser.email}
-          </p>
-          <button
-            onClick={() => {
-              localStorage.clear();
-              setLoggedInUser(null);
-            }}
-            className="mt-8 rounded-md bg-primary px-5 py-3 text-white hover:bg-primary/90"
-          >
-            Log Out
-          </button>
+          <h1 className="text-3xl font-semibold">Welcome, {loggedInUser.name || "User"} 👋</h1>
+          <p className="mt-2 text-lg text-muted-foreground">{loggedInUser.email}</p>
+
+          <div className="mt-8 border rounded-xl p-6 grid gap-4 text-left max-w-md mx-auto">
+            <button className="w-full rounded-md border px-4 py-3 text-left hover:bg-gray-100">
+              ⚙️ Settings
+            </button>
+            <button className="w-full rounded-md border px-4 py-3 text-left hover:bg-gray-100">
+              ❤️ Wishlisted Products
+            </button>
+            <button className="w-full rounded-md border px-4 py-3 text-left hover:bg-gray-100">
+              🌐 Change Language
+            </button>
+            <button className="w-full rounded-md border px-4 py-3 text-left hover:bg-gray-100">
+              ❓ Help Center
+            </button>
+            <button
+              onClick={handleLogout}
+              className="w-full rounded-md bg-red-500 text-white px-4 py-3 hover:bg-red-600"
+            >
+              🚪 Log Out
+            </button>
+          </div>
         </div>
       ) : (
-        // --- Show this view if the user is NOT logged in ---
+        // --- LOGIN FORM VIEW ---
         <div>
           <h1 className="text-3xl font-semibold text-center">Login or Create Account</h1>
           <p className="mt-2 text-center text-muted-foreground">
@@ -155,4 +152,3 @@ export default function Login() {
     </div>
   );
 }
-

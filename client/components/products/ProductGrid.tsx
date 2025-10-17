@@ -35,13 +35,14 @@ export default function ProductGrid() {
     );
   }, [active, q]);
 
-  const handleAddToCart = (prod: any) => {
+  const handleAddToCart = async (prod: any) => {
     if (!user) {
       toast.error("Please sign in to add items to cart");
       navigate("/profile"); // redirect to login/signup
       return;
     }
 
+    // 1️⃣ Update local/global cart (UI updates instantly)
     addItem({
       id: prod.id,
       name: prod.name,
@@ -49,7 +50,29 @@ export default function ProductGrid() {
       image: prod.image,
       brand: prod.brand,
     });
-    toast.success(`${prod.name} added to cart!`);
+
+    // 2️⃣ Send to backend (MongoDB)
+    try {
+      const res = await fetch(`http://localhost:5000/api/cart/${user._id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId: prod.id,
+          name: prod.name,
+          price: prod.price,
+          image: prod.image,
+          brand: prod.brand,
+          qty: 1,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to save cart in DB");
+
+      toast.success(`${prod.name} added to your cart!`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Could not save cart in DB. Try again.");
+    }
   };
 
   return (

@@ -10,7 +10,6 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Layout from "@/components/site/Layout";
 import Collections from "@/pages/Collections";
-import Cart from "@/pages/Cart";
 import About from "@/pages/About";
 import Profile from "@/pages/Profile";
 import Settings from "@/pages/Settings";       
@@ -42,7 +41,6 @@ const App = () => (
               <Route element={<Layout />}>
                 <Route path="/" element={<Index />} />
                 <Route path="/collections" element={<Collections />} />
-                <Route path="/cart" element={<Cart />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/settings" element={<Settings />} />       {/* ✅ main settings */}

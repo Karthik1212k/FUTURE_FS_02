@@ -1,4 +1,11 @@
-type Product = {
+import { useState } from "react";
+import { useAuth } from "@/store/auth";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { formatINR } from "@/lib/utils";
+import { useCart } from "@/store/cart"; // ✅ import cart context
+
+export type Product = {
   id: string;
   name: string;
   price: number;
@@ -14,36 +21,31 @@ const brandStyles: Record<string, { bg: string; fg: string; short: string }> = {
   "New Balance": { bg: "bg-rose-600", fg: "text-white", short: "NB" },
 };
 
-import { useState } from "react";
-import { useAuth } from "@/store/auth";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { formatINR } from "@/lib/utils";
-
 export default function ProductCard({
   product,
-  onAdd,
 }: {
   product: Product;
-  onAdd?: (p: Product) => void;
 }) {
   const [imgError, setImgError] = useState(false);
   const { user, addToWishlist, removeFromWishlist } = useAuth();
+  const { addToCart } = useCart(); // ✅ use cart context
   const navigate = useNavigate();
 
   if (imgError || !product.image) return null;
 
-  // Check if product is already in wishlist
   const isWishlisted = user?.wishlist?.some((p) => p.id === product.id);
 
+  // ✅ Add to Cart handler
   const handleAddToCart = () => {
     if (!user) {
       toast.error("Please sign in to add items to cart");
       navigate("/profile");
       return;
     }
-    onAdd?.(product);
+
+    addToCart(product); // Adds product or increments qty
     toast.success(`${product.name} added to cart!`);
+    navigate("/cart"); // Navigate to Cart page
   };
 
   const handleWishlistToggle = () => {
@@ -73,6 +75,8 @@ export default function ProductCard({
           decoding="async"
           onError={() => setImgError(true)}
         />
+
+        {/* Brand badge */}
         <div className="absolute left-3 top-3">
           <div
             className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ${
@@ -86,7 +90,7 @@ export default function ProductCard({
           </div>
         </div>
 
-        {/* Wishlist button (top-right corner) */}
+        {/* Wishlist button */}
         <button
           onClick={handleWishlistToggle}
           className="absolute right-3 top-3 rounded-full bg-white p-2 shadow hover:bg-gray-100"
@@ -95,6 +99,7 @@ export default function ProductCard({
         </button>
       </div>
 
+      {/* Product info */}
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -105,6 +110,8 @@ export default function ProductCard({
           </div>
           <p className="text-base font-semibold">{formatINR(product.price)}</p>
         </div>
+
+        {/* Add to Cart button */}
         <button
           onClick={handleAddToCart}
           className="mt-4 w-full rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
